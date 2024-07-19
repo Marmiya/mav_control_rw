@@ -16,7 +16,7 @@
   <depend>nav_msgs</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
-  <depend>tf</depend>
-  <depend>tf_conversions</depend>
+  <depend>tf2_ros</depend>
+  <!-- <depend>tf_conversions</depend> -->
   <depend>visualization_msgs</depend>
 </package>

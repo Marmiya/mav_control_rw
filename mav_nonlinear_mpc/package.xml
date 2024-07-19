@@ -18,7 +18,7 @@
   <depend>cmake_modules</depend>
   <depend>roscpp</depend>
   <depend>dynamic_reconfigure</depend>
-  <depend>tf</depend>
+  <depend>tf2_ros</depend>
   <depend>mav_control_interface</depend>
   <depend>mav_disturbance_observer</depend>
 </package>

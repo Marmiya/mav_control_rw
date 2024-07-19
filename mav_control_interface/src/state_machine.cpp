@@ -21,6 +21,10 @@
 
 #include "state_machine.h"
 
+#include <geometry_msgs/TransformStamped.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2_eigen/tf2_eigen.h>
+
 namespace mav_control_interface {
 
 namespace state_machine {
@@ -77,29 +81,33 @@ void StateMachineDefinition::PublishStateInfo(const std::string& info)
 
 void StateMachineDefinition::PublishCurrentReference()
 {
-  ros::Time time_now = ros::Time::now();
-  mav_msgs::EigenTrajectoryPoint current_reference;
-  controller_->getCurrentReference(&current_reference);
+    ros::Time time_now = ros::Time::now();
+    mav_msgs::EigenTrajectoryPoint current_reference;
+    controller_->getCurrentReference(&current_reference);
 
-  tf::Quaternion q;
-  tf::Vector3 p;
-  tf::vectorEigenToTF(current_reference.position_W, p);
-  tf::quaternionEigenToTF(current_reference.orientation_W_B, q);
+    geometry_msgs::TransformStamped transformStamped;
+    transformStamped.header.stamp = time_now;
+    transformStamped.header.frame_id = reference_frame_id_;
+    transformStamped.child_frame_id = nh_.getNamespace() + "/current_reference";
 
-  tf::Transform transform;
-  transform.setOrigin(p);
-  transform.setRotation(q);
+    auto translation = tf2::toMsg(current_reference.position_W);
+    transformStamped.transform.translation.x = translation.x;
+    transformStamped.transform.translation.y = translation.y;
+    transformStamped.transform.translation.z = translation.z;
 
-  transform_broadcaster_.sendTransform(
-      tf::StampedTransform(transform, time_now, reference_frame_id_, nh_.getNamespace() + "/current_reference"));
+    // Convert Eigen quaternion to geometry_msgs Quaternion and assign
+    transformStamped.transform.rotation = tf2::toMsg(current_reference.orientation_W_B);
 
-  if (current_reference_publisher_.getNumSubscribers() > 0) {
-    trajectory_msgs::MultiDOFJointTrajectoryPtr msg(new trajectory_msgs::MultiDOFJointTrajectory);
-    mav_msgs::msgMultiDofJointTrajectoryFromEigen(current_reference, msg.get());
-    msg->header.stamp = time_now;
-    msg->header.frame_id = reference_frame_id_;
-    current_reference_publisher_.publish(msg);
-  }
+    // Broadcasting the transform
+    transform_broadcaster_.sendTransform(transformStamped);
+
+    if (current_reference_publisher_.getNumSubscribers() > 0) {
+        trajectory_msgs::MultiDOFJointTrajectoryPtr msg(new trajectory_msgs::MultiDOFJointTrajectory);
+        mav_msgs::msgMultiDofJointTrajectoryFromEigen(current_reference, msg.get());
+        msg->header.stamp = time_now;
+        msg->header.frame_id = reference_frame_id_;
+        current_reference_publisher_.publish(msg);
+    }
 }
 
 void StateMachineDefinition::PublishPredictedState()

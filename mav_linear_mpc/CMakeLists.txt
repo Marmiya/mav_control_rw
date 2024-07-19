@@ -27,10 +27,7 @@ cs_add_library(cvxgen_solver
   lib/util.c
   lib/variables_definition.c
 )
-
-
 target_link_libraries(mav_linear_mpc cvxgen_solver)
-
 
 ############
 # BINARIES #

@@ -34,6 +34,107 @@
 #include <mav_control_interface/mav_control_interface.h>
 #include <mav_control_interface/rc_interface_aci.h>
 
+
+// #include <boost/thread.hpp>
+// #include <iostream>
+// #include <string>
+// #include <unistd.h>
+// #include <fcntl.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
+
+// class SuppressTFRepeatedData
+// {
+// public:
+//     SuppressTFRepeatedData() : registered_(false)
+//     {
+//     }
+
+//     void operator()()
+//     {
+//         if (registered_)
+//             return;
+
+//         // Create a pipe
+//         if (pipe(pipe_fd_) == -1)
+//         {
+//             ROS_ERROR("Failed to create pipe");
+//             return;
+//         }
+
+//         // Save the original STDERR file descriptor
+//         stderr_fd_ = dup(STDERR_FILENO);
+
+//         // Redirect STDERR to the write end of the pipe
+//         if (dup2(pipe_fd_[1], STDERR_FILENO) == -1)
+//         {
+//             ROS_ERROR("Failed to redirect STDERR");
+//             return;
+//         }
+
+//         // Start the reader thread
+//         reader_thread_ = boost::thread(&SuppressTFRepeatedData::reader, this);
+
+//         registered_ = true;
+//     }
+
+// private:
+//     void reader()
+//     {
+//         char buffer[1024];
+//         std::string line;
+//         bool skip_next_line = false;
+
+//         // Open the read end of the pipe as a FILE* stream
+//         FILE* pipe_stream = fdopen(pipe_fd_[0], "r");
+//         if (!pipe_stream)
+//         {
+//             ROS_ERROR("Failed to open pipe stream");
+//             return;
+//         }
+
+//         while (fgets(buffer, sizeof(buffer), pipe_stream) != nullptr)
+//         {
+//             line = buffer;
+//             if (line.find("Warning: TF_REPEATED_DATA") != std::string::npos)
+//             {
+//                 skip_next_line = true;
+//                 continue;
+//             }
+
+//             if (skip_next_line)
+//             {
+//                 skip_next_line = false;
+//                 continue;
+//             }
+
+//             // Write the filtered line to the original STDERR
+//             if (write(stderr_fd_, line.c_str(), line.size()) == -1)
+//             {
+//                 ROS_ERROR("Failed to write to STDERR");
+//             }
+//             if (write(stderr_fd_, "\n", 1) == -1)
+//             {
+//                 ROS_ERROR("Failed to write to STDERR");
+//             }
+//         }
+
+//         fclose(pipe_stream);
+//         close(pipe_fd_[1]);
+//     }
+
+//     bool registered_;
+//     int pipe_fd_[2];
+//     int stderr_fd_;
+//     boost::thread reader_thread_;
+// };
+
+// // Create a global instance
+// SuppressTFRepeatedData suppress_TF_REPEATED_DATA;
+
+// Usage:
+// Call suppress_TF_REPEATED_DATA() after ros::init
+// suppress_TF_REPEATED_DATA();
 namespace mav_control {
 
 NonLinearModelPredictiveControllerNode::NonLinearModelPredictiveControllerNode(
@@ -163,6 +264,8 @@ int main(int argc, char** argv)
       new mav_control_interface::RcInterfaceAci(nh));
 
   mav_control_interface::MavControlInterface control_interface(nh, private_nh, mpc, rc);
+
+//   suppress_TF_REPEATED_DATA();
 
   ros::spin();
 

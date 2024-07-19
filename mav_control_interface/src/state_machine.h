@@ -34,7 +34,8 @@
 #include <mav_msgs/conversions.h>
 #include <mav_msgs/eigen_mav_msgs.h>
 #include <ros/ros.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/transform_broadcaster.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <mav_control_interface/position_controller_interface.h>
 #include <mav_control_interface/rc_interface.h>
@@ -210,7 +211,7 @@ private:
   ros::Publisher command_publisher_;
   ros::Publisher state_info_publisher_;
 
-  tf::TransformBroadcaster transform_broadcaster_;
+  tf2_ros::TransformBroadcaster transform_broadcaster_;
   ros::Publisher current_reference_publisher_;
   ros::Publisher predicted_state_publisher_;
   ros::Publisher full_predicted_state_publisher_;
